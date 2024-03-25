@@ -12,8 +12,8 @@
   "license": "MIT",
   "authors": [
     {"name": "Dustin Dawes", "email": "gu3st@dustindawes.com", "homepage":  "https://gu3.st" },
-    {"name": "Devang Srivastava", "email": "hey@devang.dev", "homepage": "https://devang.dev"}],
-
+    {"name": "Devang Srivastava", "email": "hey@devang.dev", "homepage": "https://devang.dev"}
+  ],
   "autoload": {
     "files": ["spaces.php"]
   }
