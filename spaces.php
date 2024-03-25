@@ -8,7 +8,7 @@ Makes interacting with DigitalOcean Spaces super easy.
 /*
 A helper function just to tidy everything up a bit.
 */
-function Spaces($accessKey, $secretKey, $host = "digitaloceanspaces.com") { return new Spaces($accessKey, $secretKey, $host); }
+function Spaces($accessKey, $secretKey, $host = "digitaloceanspaces.com", $protocol = "https", $s3Opts = []) { return new Spaces($accessKey, $secretKey, $host, $protocol, $s3Opts); }
 
 
 
@@ -20,28 +20,34 @@ class Spaces {
   private $accessKey;
   private $secretKey;
   private $host;
+  private $s3opts;
+  private $protocol;
 
 
 
   /*
   Takes your secrets.
   */
-  function __construct($accessKey, $secretKey, $host = "digitaloceanspaces.com") {
+  function __construct($accessKey, $secretKey, $host = "digitaloceanspaces.com", $protocol = "https", $s3Opts = []) {
     $this->accessKey = $accessKey;
     $this->secretKey = $secretKey;
+    $this->protocol = "https";
     $this->host = $host;
+    $this->s3Opts = $s3Opts;
 
     //Load the underlying AWS class.
     if(!class_exists("Aws\S3\S3Client")) { require_once(dirname(__FILE__)."/aws/aws-autoloader.php"); }
 
+    $opts = [
+        "version" => "2006-03-01",
+        "region" => "us-east-1",
+        "endpoint" => "$protocol://ams3.".$host,
+        "credentials" => ["key" => $accessKey, "secret" => $secretKey],
+        "ua_append" => "SociallyDev-Spaces-API/2",
+    ];
+
     //Create an S3 instance.
-    $this->s3 = new \Aws\S3\S3Client([
-      "version" => "2006-03-01",
-      "region" => "us-east-1",
-      "endpoint" => "https://ams3.".$host,
-      "credentials" => ["key" => $accessKey, "secret" => $secretKey],
-      "ua_append" => "SociallyDev-Spaces-API/2"
-    ]);
+    $this->s3 = new \Aws\S3\S3Client(array_merge($opts, $s3Opts));
   }
 
 
@@ -60,7 +66,7 @@ class Spaces {
   Automatically figures out the region if not provided.
   */
   function space($name, $region = "ams3") {
-    return new Space($name, $region, $this->accessKey, $this->secretKey, $this->host);
+    return new Space($name, $region, $this->accessKey, $this->secretKey, $this->host, $this->protocol, $this->s3opts);
   }
 
 
@@ -88,16 +94,18 @@ class Space {
   Stores the arguments needed.
   Also creates another S3 instance for this region.
   */
-  function __construct($name, $region, $accessKey, $secretKey, $host) {
+  function __construct($name, $region, $accessKey, $secretKey, $host, $protocol = "https", $s3Opts = []) {
     $this->name = $name;
     //$this->region = $region;
-    $this->s3 = new \Aws\S3\S3Client([
-      "version" => "2006-03-01",
-      "region" => "us-east-1",
-      "endpoint" => "https://".$region.".".$host,
-      "credentials" => ["key" => $accessKey, "secret" => $secretKey],
-      "ua_append" => "SociallyDev-Spaces-API/2"
-    ]);
+      $opts = [
+          "version" => "2006-03-01",
+          "region" => $region,
+          "endpoint" => "$protocol://".$region.".".$host,
+          "credentials" => ["key" => $accessKey, "secret" => $secretKey],
+          "ua_append" => "SociallyDev-Spaces-API/2"
+      ];
+
+    $this->s3 = new \Aws\S3\S3Client(array_merge($opts, $s3Opts));
   }
 
 
