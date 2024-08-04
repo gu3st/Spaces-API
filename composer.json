@@ -16,5 +16,10 @@
   ],
   "autoload": {
     "files": ["spaces.php"]
+  },
+  "config": {
+    "platform": {
+      "php": "5.6"
+    }
   }
 }
